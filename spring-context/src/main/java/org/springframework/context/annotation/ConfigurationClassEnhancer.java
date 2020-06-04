@@ -76,6 +76,7 @@ class ConfigurationClassEnhancer {
 	// The callbacks to use. Note that these callbacks must be stateless.
 	private static final Callback[] CALLBACKS = new Callback[] {
 			new BeanMethodInterceptor(),
+			//
 			new BeanFactoryAwareMethodInterceptor(),
 			NoOp.INSTANCE
 	};
@@ -96,6 +97,7 @@ class ConfigurationClassEnhancer {
 	 * @return the enhanced subclass
 	 */
 	public Class<?> enhance(Class<?> configClass, @Nullable ClassLoader classLoader) {
+		/*gl: 判断配置类是否被代理过，配置类一旦被代理过 其属性中就会多出beanFactory这个接口，直接return configClass*/
 		if (EnhancedConfiguration.class.isAssignableFrom(configClass)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug(String.format("Ignoring request to enhance %s as it has " +
@@ -107,6 +109,7 @@ class ConfigurationClassEnhancer {
 			}
 			return configClass;
 		}
+		//gl: 如果配置类没有被代理过 就在此做cglib代理
 		Class<?> enhancedClass = createClass(newEnhancer(configClass, classLoader));
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("Successfully enhanced %s; enhanced class name is: %s",
@@ -120,7 +123,11 @@ class ConfigurationClassEnhancer {
 	 */
 	private Enhancer newEnhancer(Class<?> configSuperClass, @Nullable ClassLoader classLoader) {
 		Enhancer enhancer = new Enhancer();
+
 		enhancer.setSuperclass(configSuperClass);
+		/*gl: 增强接口 why？
+		* 便于判断 表示一个类以及被增强了，
+		* 为了让配置类里面可以生成一个属性 让beanFactory可以注入进去*/
 		enhancer.setInterfaces(new Class<?>[] {EnhancedConfiguration.class});
 		enhancer.setUseFactory(false);
 		enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
@@ -318,6 +325,7 @@ class ConfigurationClassEnhancer {
 					MethodProxy cglibMethodProxy) throws Throwable {
 
 			ConfigurableBeanFactory beanFactory = getBeanFactory(enhancedConfigInstance);
+			//通过enhancedConfigInstance中的cglib生成的成员变量$$beanFactory来获得beanFactory
 			String beanName = BeanAnnotationHelper.determineBeanNameFor(beanMethod);
 
 			// Determine whether this bean is a scoped-proxy
@@ -365,6 +373,7 @@ class ConfigurationClassEnhancer {
 				return cglibMethodProxy.invokeSuper(enhancedConfigInstance, beanMethodArgs);
 			}
 
+			/*gl: 完成对方法的代理*/
 			return resolveBeanReference(beanMethod, beanMethodArgs, beanFactory, beanName);
 		}
 

@@ -1911,7 +1911,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		try {
 			//调用初始化方法
-			invokeInitMethods(beanName, wrappedBean, mbd);
+				invokeInitMethods(beanName, wrappedBean, mbd);
 		}
 		catch (Throwable ex) {
 			throw new BeanCreationException(

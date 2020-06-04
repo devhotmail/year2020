@@ -98,7 +98,11 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 
 		return bean;
 	}
-
+  /* gl: 此方法就是将 一些自定义的bean 根据其是否实现某接口来赋予对应的对象
+  * 如最后那句(ApplicationContextAware) bean).setApplicationContext(this.applicationContext)
+  * 就是将 bean 赋予一个spring上下文
+  *
+  * */
 	private void invokeAwareInterfaces(Object bean) {
 		if (bean instanceof Aware) {
 			if (bean instanceof EnvironmentAware) {

@@ -2,6 +2,9 @@ description = "Spring Beans"
 
 apply plugin: "groovy"
 
+repositories {
+	mavenCentral()
+}
 dependencies {
 	compile(project(":spring-core"))
 	optional("javax.inject:javax.inject:1")
@@ -10,6 +13,8 @@ dependencies {
 	optional("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
 	optional("org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}")
 	testCompile("org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}")
+
+
 }
 
 // This module does joint compilation for Java and Groovy code with the compileGroovy task.
@@ -22,6 +27,7 @@ compileGroovy {
 	sourceCompatibility = 1.8
 	targetCompatibility = 1.8
 }
+
 
 // This module also builds Kotlin code and the compileKotlin task naturally depends on
 // compileJava. We need to redefine dependencies to break task cycles.

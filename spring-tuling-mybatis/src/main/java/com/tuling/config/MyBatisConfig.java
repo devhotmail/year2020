@@ -4,7 +4,8 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.github.pagehelper.PageHelper;
 import com.tuling.entity.Dept;
 import com.tuling.entity.Employee;
-import lombok.extern.apachecommons.CommonsLog;
+//import lombok.extern.apachecommons.CommonsLog;
+
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;

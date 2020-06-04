@@ -14,6 +14,7 @@ import java.io.IOException;
 * @createDate: 2019/7/31 16:43
 * @version: 1.0
 */
+@SuppressWarnings("serial")
 @WebServlet(value = {"/tulingHello"})
 public class TulingServlet extends HttpServlet {
 

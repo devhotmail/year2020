@@ -251,14 +251,13 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			processConfigBeanDefinitions((BeanDefinitionRegistry) beanFactory);
 		}
 
+		/*gl: 给配置类产生cglib代理  why?
+		因为要维护配置类当中的那些bean的作用域，可以控制它们是单例还是多例*/
 		enhanceConfigurationClasses(beanFactory);
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
 	}
 
-	/**
-	 * Build and validate a configuration model based on the registry of
-	 * {@link Configuration} classes.
-	 */
+ /*拿出所有的bd，判断bd是否包含了 @Configuration @Service 等注解*/
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
 		//获取IOC 容器中目前所有bean定义的名称
@@ -325,7 +324,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		//do while 会进行第一次解析
 		do {
-			//真正的解析我们的配置类
+			//真正的解析我们的配置类  gl:  这个方法完成后 会将们自己定义的那些@Bean 加到beanDefintionMap中
 			parser.parse(candidates);
 			parser.validate();
 
@@ -339,7 +338,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						registry, this.sourceExtractor, this.resourceLoader, this.environment,
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
-			//真正的把我们解析出来的配置类注册到容器中
+			//出去普通类， 不管是@Bean 还是@import 进来的类都在这里加载
 			this.reader.loadBeanDefinitions(configClasses);
 			//加入到已经解析的集合中
 			alreadyParsed.addAll(configClasses);
@@ -397,6 +396,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		for (String beanName : beanFactory.getBeanDefinitionNames()) {
 			BeanDefinition beanDef = beanFactory.getBeanDefinition(beanName);
 			if (ConfigurationClassUtils.isFullConfigurationClass(beanDef)) {
+				/*如果beanName的类加了@Configuration的话 就进入*/
 				if (!(beanDef instanceof AbstractBeanDefinition)) {
 					throw new BeanDefinitionStoreException("Cannot enhance @Configuration bean definition '" +
 							beanName + "' since it is not stored in an AbstractBeanDefinition subclass");
@@ -414,14 +414,14 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			// nothing to enhance -> return immediately
 			return;
 		}
-
+		/*gl: 为每个配置类生成对应的cglib对象(springboot里面有很多个配置类)*/
 		ConfigurationClassEnhancer enhancer = new ConfigurationClassEnhancer();
 		for (Map.Entry<String, AbstractBeanDefinition> entry : configBeanDefs.entrySet()) {
 			AbstractBeanDefinition beanDef = entry.getValue();
 			// If a @Configuration class gets proxied, always proxy the target class
 			beanDef.setAttribute(AutoProxyUtils.PRESERVE_TARGET_CLASS_ATTRIBUTE, Boolean.TRUE);
 			try {
-				// Set enhanced subclass of the user-specified bean class
+				//gl: 完成对 配置类的 cglib代理
 				Class<?> configClass = beanDef.resolveBeanClass(this.beanClassLoader);
 				if (configClass != null) {
 					Class<?> enhancedClass = enhancer.enhance(configClass, this.beanClassLoader);

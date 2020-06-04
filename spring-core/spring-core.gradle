@@ -12,7 +12,6 @@ dependencyManagement {
 // depend on org.springframework.asm; this avoids including two different copies of asm.
 def cglibVersion = "3.2.6"
 def objenesisVersion = "2.6"
-
 configurations {
 	jarjar
 	cglib

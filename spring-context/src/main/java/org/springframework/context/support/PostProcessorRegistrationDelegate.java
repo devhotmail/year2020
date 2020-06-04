@@ -72,9 +72,8 @@ final class PostProcessorRegistrationDelegate {
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			//强行把我们的bean工厂转为BeanDefinitionRegistry
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
-			//保存BeanFactoryPostProcessor类型的后置
+
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
-			//保存BeanDefinitionRegistryPostProcessor类型的后置处理器
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
 			//循环我们传递进来的beanFactoryPostProcessors
@@ -98,8 +97,13 @@ final class PostProcessorRegistrationDelegate {
 			//定义一个集合用户保存当前准备创建的BeanDefinitionRegistryPostProcessor
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
-			//第一步:去容器中获取BeanDefinitionRegistryPostProcessor的bean的处理器名称
-			String[] postProcessorNames =
+			/*gl：
+			getBeanNamesForType:  map中是<beanName,BeanDefition-bd> ,该方法就是通过bd中的类型来获取beanName。
+			即去容器的beanMap中获取BeanDefinitionRegistryPostProcessor的bean的处理器名称。例如在bean工厂初始化时
+			有个名叫ConfigurationClassPostProcessor的被注入进容器，这个类就是BeanDefinitionRegistryPostProcessor的子类
+
+			*/
+ 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			//循环上一步获取的BeanDefinitionRegistryPostProcessor的类型名称
 			for (String ppName : postProcessorNames) {
@@ -139,7 +143,7 @@ final class PostProcessorRegistrationDelegate {
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
 			//把他加入到用于保存到registryProcessors中
 			registryProcessors.addAll(currentRegistryProcessors);
-			//调用他的后置处理方法
+			//gl: 重要
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
 			//调用完之后，马上clea掉
 			currentRegistryProcessors.clear();
@@ -354,7 +358,7 @@ final class PostProcessorRegistrationDelegate {
 	private static void invokeBeanDefinitionRegistryPostProcessors(
 			Collection<? extends BeanDefinitionRegistryPostProcessor> postProcessors, BeanDefinitionRegistry registry) {
 		//获取容器中的ConfigurationClassPostProcessor的后置处理器进行bean定义的扫描
-		for (BeanDefinitionRegistryPostProcessor postProcessor : postProcessors) {
+ 		for (BeanDefinitionRegistryPostProcessor postProcessor : postProcessors) {
 			postProcessor.postProcessBeanDefinitionRegistry(registry);
 		}
 	}

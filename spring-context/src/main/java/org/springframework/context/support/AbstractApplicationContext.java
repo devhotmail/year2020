@@ -56,6 +56,7 @@ import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.PayloadApplicationEvent;
 import org.springframework.context.ResourceLoaderAware;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -521,18 +522,22 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 			//2:获取告诉子类初始化Bean工厂
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
-
-			//3:对bean工厂进行填充属性
+			//3: gl:先对bean工厂做些配置
 			prepareBeanFactory(beanFactory);
 
 			try {
 				// 第四:留个子类去实现该接口
 				postProcessBeanFactory(beanFactory);
 
-				// 调用我们的bean工厂的后置处理器.
+				/*gl谁实现了BeanFactoryPostProcessor 都会在此处调用，同样spring的bean工厂初始化也在其中
+				* 谁实现了BeanDefitiniotRegistryPP也在其中会被调用 因为BeanDefitiniotRegistryPP是BFPP子类
+				*
+				* 注意:在spring一开始先注册的6个类中，有一个叫ConfigurationClassPostProcessor
+				* 就是一个BFP,就会在此执行
+				* */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
-				// 调用我们bean的后置处理器
+				// gl: 谁实现了 InitializingBean 都会在此处先调用
 				registerBeanPostProcessors(beanFactory);
 
 				// 初始化国际化资源处理器.
@@ -547,7 +552,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				//把我们的事件监听器注册到多播器上
 				registerListeners();
 
-				//实例化我们剩余的单实例bean.
+				//实例化我们剩余的单实例bean. gl: 实现了BeanPostProcessor
 				finishBeanFactoryInitialization(beanFactory);
 
 				// 最后容器刷新 发布刷新事件(Spring cloud也是从这里启动的)
@@ -658,14 +663,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @param beanFactory the BeanFactory to configure
 	 */
 	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-		//设置bean工厂的类加载器为当前application应用的加载器
+		//gl: bean工厂肯定需要 load 些class 所以需要类加载器
 		beanFactory.setBeanClassLoader(getClassLoader());
 		//为bean工厂设置我们标准的SPEL表达式解析器对象StandardBeanExpressionResolver
 		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
 		//为我们的bean工厂设置了一个propertityEditor 属性资源编辑器对象(用于后面的给bean对象赋值使用)
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
-		//注册了一个完整的ApplicationContextAwareProcessor 后置处理器用来处理ApplicationContextAware接口的回调方法
+		/*gl : 核心 注册了一个完整的ApplicationContextAwareProcessor 后置处理器用来处理ApplicationContextAware接口的回调方法，
+		这个类可以作为spring的一个扩展点*/
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 
 
@@ -690,7 +696,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this);
 		beanFactory.registerResolvableDependency(ApplicationContext.class, this);
 
-		//注册了一个事件监听器探测器后置处理器接口
+		// 注册了一个事件监听器探测器后置处理器接口
 		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(this));
 
 		// 处理aspectj的
@@ -732,8 +738,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 		//传入bean工厂和获取applicationContext中的bean工厂后置处理器(但是由于没有任何实例化过程,所以传递进来的为空)
-		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
+		/*gl: 如果要让getBeanFactoryPostProcessors()不为空那就要手动加入
+	     AnnotationConfigApplicationContext->addBeanFactoryPostProcessor */
+
+ 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime
 		// (e.g. through an @Bean method registered by ConfigurationClassPostProcessor)
 		if (beanFactory.getTempClassLoader() == null && beanFactory.containsBean(LOAD_TIME_WEAVER_BEAN_NAME)) {
@@ -945,6 +954,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.freezeConfiguration();
 
 		//实例化剩余的单实例bean
+		/*gl: 实例化BeanPostProcessor的bean会在此被调用*/
 		beanFactory.preInstantiateSingletons();
 	}
 

@@ -79,6 +79,7 @@ public abstract class AbstractCachingViewResolver extends WebApplicationObjectSu
 	/**
 	 * 用户缓存页面的支持,过期策略
 	 */
+	@SuppressWarnings("serial")
 	private final Map<Object, View> viewCreationCache =
 			new LinkedHashMap<Object, View>(DEFAULT_CACHE_LIMIT, 0.75f, true) {
 				@Override

@@ -139,7 +139,7 @@ class ComponentScanAnnotationParser {
 				return declaringClass.equals(className);
 			}
 		});
-		//真正的进行扫描解析
+		//gl:真正的进行扫描解析 返回配置类中的所有@Bean对象
 		return scanner.doScan(StringUtils.toStringArray(basePackages));
 	}
 

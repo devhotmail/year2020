@@ -24,6 +24,7 @@ public class JDKDynamicProxy implements InvocationHandler {
 	 * @param <T>
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public <T> T getProxy() {
 		return (T) Proxy.newProxyInstance(target.getClass().getClassLoader(), target.getClass().getInterfaces(), this);
 	}

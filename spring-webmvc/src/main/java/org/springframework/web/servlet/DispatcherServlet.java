@@ -71,6 +71,7 @@ import org.springframework.web.util.WebUtils;
 * @createDate: 2019/8/2 15:53
 * @version: 1.0
 */
+@SuppressWarnings("serial")
 public class DispatcherServlet extends FrameworkServlet {
 
 	/**文件上传下载组件的名称 */

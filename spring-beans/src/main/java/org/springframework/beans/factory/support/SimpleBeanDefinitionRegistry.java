@@ -26,14 +26,7 @@ import org.springframework.core.SimpleAliasRegistry;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-/**
- * Simple implementation of the {@link BeanDefinitionRegistry} interface.
- * Provides registry capabilities only, with no factory capabilities built in.
- * Can for example be used for testing bean definition readers.
- *
- * @author Juergen Hoeller
- * @since 2.5.2
- */
+//BeanDefinitionRegistry这类的作用就是将BD放到一个集合中去
 public class SimpleBeanDefinitionRegistry extends SimpleAliasRegistry implements BeanDefinitionRegistry {
 
 	/** Map of bean definition objects, keyed by bean name */

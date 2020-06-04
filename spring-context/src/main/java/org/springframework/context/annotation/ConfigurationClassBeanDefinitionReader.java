@@ -141,6 +141,7 @@ class ConfigurationClassBeanDefinitionReader {
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
 		//是不是通过我们的@bean导入进来的组件
+		/*configClass: 装的都是@Bean的方法*/
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
