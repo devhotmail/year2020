@@ -29,7 +29,6 @@ import org.springframework.util.StringUtils;
 //BeanDefinitionRegistry这类的作用就是将BD放到一个集合中去
 public class SimpleBeanDefinitionRegistry extends SimpleAliasRegistry implements BeanDefinitionRegistry {
 
-	/** Map of bean definition objects, keyed by bean name */
 	private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(64);
 
 
